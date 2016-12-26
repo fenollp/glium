@@ -12,15 +12,18 @@ fn main() {
 
     implement_vertex!(Vertex, position);
 
-    let vertex1 = Vertex { position: [-0.5, -0.5] };
-    let vertex2 = Vertex { position: [ 0.0,  0.5] };
-    let vertex3 = Vertex { position: [ 0.5, -0.25] };
-    let shape = vec![vertex1, vertex2, vertex3];
+    let shape = vec![
+        Vertex{ position: [-0.5, -0.5] },
+        Vertex{ position: [ 0.0,  0.5] },
+        Vertex{ position: [ 0.5, -0.25] },
+    ];
 
     let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
-    let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
+    let indices = glium::index::NoIndices(glium::index::PrimitiveType::Points);
 
-    let vertex_shader_src = r#"
+    let program = program!(&display,
+                           140 => {
+                               vertex: "
         #version 140
 
         in vec2 position;
@@ -28,9 +31,8 @@ fn main() {
         void main() {
             gl_Position = vec4(position, 0.0, 1.0);
         }
-    "#;
-
-    let fragment_shader_src = r#"
+        ",
+                               fragment: "
         #version 140
 
         out vec4 color;
@@ -38,13 +40,17 @@ fn main() {
         void main() {
             color = vec4(1.0, 0.0, 0.0, 1.0);
         }
-    "#;
+        ",
+                           }).unwrap();
 
-    let program = glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None).unwrap();
+    for (name, attribute) in program.attributes() {
+        println!("Name: {} - Type: {:?}", name, attribute.ty);
+    }
+    println!("gl_PointSize activated: {:?}", program.uses_point_size());
 
     loop {
         let mut target = display.draw();
-        target.clear_color(0.0, 0.0, 1.0, 1.0);
+        target.clear_color(0.0, 0.0, 0.0, 1.0);
         target.draw(&vertex_buffer, &indices, &program, &glium::uniforms::EmptyUniforms,
                     &Default::default()).unwrap();
         target.finish().unwrap();
