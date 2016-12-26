@@ -23,12 +23,14 @@ fn main() {
 
     let program = program!(&display,
                            140 => {
+                               uses_point_size: true,
                                vertex: "
         #version 140
 
         in vec2 position;
 
         void main() {
+            gl_PointSize = 4;
             gl_Position = vec4(position, 0.0, 1.0);
         }
         ",
